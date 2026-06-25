@@ -1,0 +1,13 @@
+/* ===========================================================================
+   Daxiong UI â€?design tokens entry point.
+   Import this ONCE at your app root:  import '@daxiong/ui/styles.css';
+   It defines every --* CSS variable the Tailwind preset maps utilities onto,
+   and loads the brand fonts.
+   =========================================================================== */
+
+@import url('./fonts.css');
+@import url('./colors.css');
+@import url('./typography.css');
+@import url('./spacing.css');
+@import url('./radius.css');
+@import url('./shadows.css');

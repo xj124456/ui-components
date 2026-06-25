@@ -1,0 +1,78 @@
+/* ===========================================================================
+   Colors â€?internal palette (Tailwind-style CSS custom properties)
+   Base ramp values + semantic aliases. Resolved from DESIGN.md {colors.*}.
+   =========================================================================== */
+
+:root {
+  /* ---- Brand & accent ------------------------------------------------- */
+  --brand-green:        #00ED64;  /* Spring Green â€?primary CTA signal      */
+  --brand-green-dark:   #00684A;  /* Forest â€?inline links, pressed text    */
+  --brand-green-mid:    #00A35C;  /* Mid-spectrum green                     */
+  --brand-green-soft:   #C0FAE6;  /* Pale mint â€?success/featured tint      */
+
+  --brand-teal-deep:    #001E2B;  /* Hero bands, footer, dark CTA           */
+  --brand-teal:         #023430;  /* Evergreen mid                          */
+  --brand-teal-mid:     #0C3A33;  /* Lighter teal â€?hero platform cards     */
+
+  /* ---- Category accents (course tags ONLY) ---------------------------- */
+  --accent-purple:      #9B5DE5;
+  --accent-orange:      #FF8A3D;
+  --accent-pink:        #F25C9E;
+  --accent-blue:        #016BF8;
+
+  /* ---- Surface -------------------------------------------------------- */
+  --canvas:             #FFFFFF;
+  --canvas-dark:        #001E2B;  /* code blocks, mockup canvas             */
+  --surface:            #F9FBFA;
+  --surface-soft:       #F1F5F4;
+  --surface-feature:    #E3FCEC;  /* featured pricing tier mint             */
+  --hairline:           #E8EDEB;
+  --hairline-soft:      #F1F5F4;
+  --hairline-strong:    #C1C7C6;
+  --hairline-dark:      rgba(255, 255, 255, 0.16);
+
+  /* ---- Text ----------------------------------------------------------- */
+  --ink:                #001E2B;
+  --charcoal:           #1C2D38;
+  --slate:              #3D4F58;
+  --steel:              #5C6C75;
+  --stone:              #889397;
+  --muted:              #B8C4C2;
+  --on-dark:            #FFFFFF;
+  --on-dark-muted:      rgba(255, 255, 255, 0.72);
+  --on-primary:         #001E2B;  /* text atop bright green pill            */
+  --primary-pressed:    #00C957;  /* green pill pressed                     */
+
+  /* ---- Semantic ------------------------------------------------------- */
+  --warning-bg:         #FFEC9E;
+  --warning-text:       #944F01;
+  --danger:             #DB3030;
+  --danger-bg:          #FCEAEA;
+  --info:               #016BF8;
+  --info-bg:            #E1F0FF;
+  --success:            #00684A;
+  --success-bg:         #C0FAE6;
+
+  /* ---- shadcn-compatible semantic aliases ----------------------------- */
+  /* Mapped so shadcn className conventions (bg-background, text-foreground,
+     border-border, bg-primaryâ€? resolve onto internal design tokens.        */
+  --background:           var(--canvas);
+  --foreground:           var(--ink);
+  --card:                 var(--canvas);
+  --card-foreground:      var(--ink);
+  --popover:              var(--canvas);
+  --popover-foreground:   var(--ink);
+  --primary:              var(--brand-green);
+  --primary-foreground:   var(--on-primary);
+  --secondary:            var(--surface);
+  --secondary-foreground: var(--ink);
+  --muted-bg:             var(--surface);
+  --muted-foreground:     var(--steel);
+  --accent:               var(--surface-soft);
+  --accent-foreground:    var(--ink);
+  --destructive:          var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --border:               var(--hairline);
+  --input:                var(--hairline-strong);
+  --ring:                 var(--brand-green-dark);
+}

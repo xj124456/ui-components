@@ -1,0 +1,79 @@
+/* ===========================================================================
+   Typography - Plus Jakarta Sans + Source Code Pro
+   =========================================================================== */
+
+:root {
+  /* ---- Families ------------------------------------------------------- */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:    'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'Source Code Pro', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ---- Weights -------------------------------------------------------- */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  /* ---- Type scale: font sizes (px) ------------------------------------ */
+  --hero-display-size:    72px;
+  --display-lg-size:      56px;
+  --heading-1-size:       48px;
+  --heading-2-size:       36px;
+  --heading-3-size:       28px;
+  --heading-4-size:       22px;
+  --heading-5-size:       18px;
+  --subtitle-size:        18px;
+  --body-md-size:         16px;
+  --body-sm-size:         14px;
+  --caption-bold-size:    13px;
+  --micro-size:           11px;
+  --button-md-size:       14px;
+  --code-md-size:         14px;
+
+  /* ---- Type scale: line-heights (unitless) ---------------------------- */
+  --hero-display-lh:    1.10; /* @kind other */
+  --display-lg-lh:      1.15; /* @kind other */
+  --heading-1-lh:       1.20; /* @kind other */
+  --heading-2-lh:       1.25; /* @kind other */
+  --heading-3-lh:       1.30; /* @kind other */
+  --heading-4-lh:       1.35; /* @kind other */
+  --heading-5-lh:       1.40; /* @kind other */
+  --subtitle-lh:        1.50; /* @kind other */
+  --body-md-lh:         1.55; /* @kind other */
+  --body-sm-lh:         1.50; /* @kind other */
+  --caption-bold-lh:    1.40; /* @kind other */
+  --micro-lh:           1.40; /* @kind other */
+  --button-md-lh:       1.30; /* @kind other */
+  --code-md-lh:         1.55; /* @kind other */
+
+  /* ---- Type scale: letter-spacing (tracking) -------------------------- */
+  --hero-display-ls:    -1.5px; /* @kind other */
+  --display-lg-ls:      -1px;   /* @kind other */
+  --heading-1-ls:       -0.5px; /* @kind other */
+  --heading-2-ls:       -0.5px; /* @kind other */
+  --heading-3-ls:       0;      /* @kind other */
+  --heading-4-ls:       0;      /* @kind other */
+  --heading-5-ls:       0;      /* @kind other */
+  --subtitle-ls:        0;      /* @kind other */
+  --body-md-ls:         0;      /* @kind other */
+  --body-sm-ls:         0;      /* @kind other */
+  --caption-bold-ls:    0;      /* @kind other */
+  --micro-ls:           1px;    /* @kind other */
+  --button-md-ls:       0;      /* @kind other */
+  --code-md-ls:         0;      /* @kind other */
+}
+
+/* ---- Optional utility classes (specimens / quick prototyping) --------- */
+.t-hero-display { font-family: var(--font-display); font-size: var(--hero-display-size); line-height: var(--hero-display-lh); letter-spacing: var(--hero-display-ls); font-weight: var(--weight-medium); }
+.t-display-lg  { font-family: var(--font-display); font-size: var(--display-lg-size);  line-height: var(--display-lg-lh);  letter-spacing: var(--display-lg-ls);  font-weight: var(--weight-medium); }
+.t-heading-1   { font-family: var(--font-display); font-size: var(--heading-1-size);   line-height: var(--heading-1-lh);   letter-spacing: var(--heading-1-ls);   font-weight: var(--weight-medium); }
+.t-heading-2   { font-family: var(--font-display); font-size: var(--heading-2-size);   line-height: var(--heading-2-lh);   letter-spacing: var(--heading-2-ls);   font-weight: var(--weight-medium); }
+.t-heading-3   { font-family: var(--font-display); font-size: var(--heading-3-size);   line-height: var(--heading-3-lh);   font-weight: var(--weight-medium); }
+.t-heading-4   { font-family: var(--font-display); font-size: var(--heading-4-size);   line-height: var(--heading-4-lh);   font-weight: var(--weight-medium); }
+.t-heading-5   { font-family: var(--font-display); font-size: var(--heading-5-size);   line-height: var(--heading-5-lh);   font-weight: var(--weight-semibold); }
+.t-subtitle    { font-family: var(--font-sans);    font-size: var(--subtitle-size);    line-height: var(--subtitle-lh);    font-weight: var(--weight-regular); }
+.t-body-md     { font-family: var(--font-sans);    font-size: var(--body-md-size);     line-height: var(--body-md-lh);     font-weight: var(--weight-regular); }
+.t-body-sm     { font-family: var(--font-sans);    font-size: var(--body-sm-size);     line-height: var(--body-sm-lh);     font-weight: var(--weight-regular); }
+.t-caption-bold{ font-family: var(--font-sans);    font-size: var(--caption-bold-size);line-height: var(--caption-bold-lh);font-weight: var(--weight-semibold); }
+.t-micro       { font-family: var(--font-sans);    font-size: var(--micro-size);       line-height: var(--micro-lh); letter-spacing: var(--micro-ls); font-weight: var(--weight-semibold); text-transform: uppercase; }
+.t-code        { font-family: var(--font-mono);    font-size: var(--code-md-size);     line-height: var(--code-md-lh); }

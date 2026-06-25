@@ -1,0 +1,20 @@
+/* ===========================================================================
+   Elevation â€?flat-by-default; reserve shadows for mockups & overlays
+   =========================================================================== */
+
+:root {
+  --shadow-0: none;                                        /* flat + hairline */
+  --shadow-1: 0px 1px 2px 0px rgba(0, 30, 43, 0.04);       /* hover tile      */
+  --shadow-2: 0px 4px 12px 0px rgba(0, 30, 43, 0.08);      /* feature card    */
+  --shadow-3: 0px 12px 24px -4px rgba(0, 30, 43, 0.12);    /* code mockup     */
+  --shadow-4: 0px 16px 48px -8px rgba(0, 30, 43, 0.16);    /* modal/dropdown  */
+
+  /* Brand-tinted glow for the featured pricing tier */
+  --shadow-feature: 0px 8px 24px -6px rgba(0, 104, 74, 0.18);
+
+  /* Motion (DESIGN.md known-gap recommendation: 150â€?00ms ease) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-base:   170ms; /* @kind other */
+  --dur-slow:   240ms; /* @kind other */
+}

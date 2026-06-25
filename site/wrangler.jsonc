@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "design-system",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-06-20"
+}
+

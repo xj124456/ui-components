@@ -1,0 +1,16 @@
+/* ===========================================================================
+   Radius â€?pill buttons + 12px cards are the brand signature
+   =========================================================================== */
+
+:root {
+  --radius-xs:   4px;    /* course category tags                */
+  --radius-sm:   6px;    /* type badges, code chips             */
+  --radius-md:   8px;    /* inputs, search pill, code blocks    */
+  --radius-lg:   12px;   /* cards, pricing tiers, course tiles  */
+  --radius-xl:   16px;   /* larger feature panels               */
+  --radius-xxl:  24px;   /* featured product showcases          */
+  --radius-full: 9999px; /* ALL buttons + status badges         */
+
+  /* shadcn alias */
+  --radius: var(--radius-lg);
+}

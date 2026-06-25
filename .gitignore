@@ -1,0 +1,13 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.turbo/
+**/.turbo/
+.vite/
+**/.vite/
+.DS_Store
+Thumbs.db
+*.log
+.wrangler/
+**/.wrangler/
