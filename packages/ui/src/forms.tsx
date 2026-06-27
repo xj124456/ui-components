@@ -238,6 +238,9 @@ export function Select({
       ? selectedOptions.map((o) => o.label).join(', ')
       : placeholder
     : current?.label ?? placeholder;
+  const hasValue = selectedOptions.length > 0 || Boolean(current);
+  const visibleLabel = multiple && selectedOptions.length > 0 ? selectedOptions[0].label : displayLabel;
+  const extraCount = multiple ? Math.max(selectedOptions.length - 1, 0) : 0;
   const shouldSearch = searchable === true || (searchable === 'auto' && norm.length > searchThreshold);
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -277,10 +280,17 @@ export function Select({
         aria-label={ariaLabel ?? displayLabel}
         onClick={() => !disabled && setOpen((o) => !o)}
         className={cn('w-full box-border flex items-center justify-between gap-2.5 pl-4 pr-3.5 text-left font-sans text-base bg-canvas rounded-input outline-none transition-[border] duration-base ease-standard',
-          h, selectedOptions.length > 0 || current ? 'text-ink' : 'text-steel',
+          h, hasValue ? 'text-ink' : 'text-steel',
           open ? 'border-2 border-brand-green-dark' : 'border border-hairline-strong',
           disabled ? 'opacity-55 cursor-not-allowed' : 'cursor-pointer')}>
-        <span className="overflow-hidden text-ellipsis whitespace-nowrap">{displayLabel}</span>
+        <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{visibleLabel}</span>
+          {extraCount > 0 && (
+            <span className="flex-none rounded-chip bg-surface px-2 py-0.5 text-xs font-medium text-steel">
+              +{extraCount}
+            </span>
+          )}
+        </span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--steel)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           className={cn('flex-none transition-transform duration-base ease-standard', open && 'rotate-180')}>
           <polyline points="6 9 12 15 18 9" />
@@ -307,7 +317,7 @@ export function Select({
                 <button key={o.value} type="button" role="option" aria-selected={active} onClick={() => pick(o.value)}
                   className={cn('w-full flex items-center justify-between gap-2.5 py-[9px] px-3 rounded-chip text-ink text-sm text-left cursor-pointer',
                     active ? 'bg-surface-feature' : 'bg-transparent hover:bg-surface')}>
-                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">{o.label}</span>
+                  <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{o.label}</span>
                   {active && (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green-dark)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="flex-none">
                       <polyline points="20 6 9 17 4 12" />
