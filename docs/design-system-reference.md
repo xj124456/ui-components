@@ -150,7 +150,7 @@ export default {
 - `Checkbox`: 亮绿选中态。
 - `RadioGroup`: 亮绿选中圆点。
 - `Switch`: pill toggle，开启时亮绿。
-- `Select`: 自定义 dropdown。
+- `Select`: 自定义 dropdown。选项很多时默认会自动显示搜索框；可用 `searchable={true}` 强制开启，`searchable={false}` 关闭，`searchThreshold` 调整自动触发阈值；传 `multiple` 时支持多选，`value` / `onChange` 使用 `string[]`。
 - `Slider`: 亮绿进度轨。
 
 ### Feedback

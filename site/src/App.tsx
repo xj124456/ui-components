@@ -95,6 +95,21 @@ const radiusTokens = [
   ['rounded-pill', '9999px', 'CTA, toggles, pagination'],
 ];
 
+const regionOptions = [
+  { value: 'aws-us-east-1', label: 'AWS us-east-1' },
+  { value: 'aws-us-west-2', label: 'AWS us-west-2' },
+  { value: 'aws-eu-central-1', label: 'AWS eu-central-1' },
+  { value: 'gcp-us-central1', label: 'GCP us-central1' },
+  { value: 'gcp-europe-west1', label: 'GCP europe-west1' },
+  { value: 'gcp-asia-east1', label: 'GCP asia-east1' },
+  { value: 'azure-eastus2', label: 'Azure eastus2' },
+  { value: 'azure-westeurope', label: 'Azure westeurope' },
+  { value: 'azure-southeastasia', label: 'Azure southeastasia' },
+  { value: 'edge-shanghai', label: 'Edge shanghai' },
+  { value: 'edge-singapore', label: 'Edge singapore' },
+  { value: 'edge-frankfurt', label: 'Edge frankfurt' },
+];
+
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="doc-shell">
@@ -279,7 +294,8 @@ function ComponentDocs() {
   const [checked, setChecked] = React.useState(true);
   const [radio, setRadio] = React.useState('Platform');
   const [switchOn, setSwitchOn] = React.useState(true);
-  const [selectValue, setSelectValue] = React.useState('aws');
+  const [selectValue, setSelectValue] = React.useState('aws-us-east-1');
+  const [multiSelectValue, setMultiSelectValue] = React.useState<string[]>(['aws-us-east-1', 'gcp-us-central1']);
   const [sliderValue, setSliderValue] = React.useState(64);
   const [tab, setTab] = React.useState('overview');
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -348,19 +364,22 @@ function ComponentDocs() {
 
           <PreviewCard
             title="Select and Slider"
-            description="Dropdown and range controls for configuration flows."
+            description="Dropdown search appears automatically when the option list is long. Use multiple for multi-select fields."
             usage="Forms"
-            code={`<Select value={region} onChange={setRegion} options={options} />\n<Slider value={value} onChange={setValue} />`}
+            code={`<Select value={region} onChange={setRegion} options={regions} searchable="auto" searchThreshold={8} />\n<Select multiple value={regions} onChange={setRegions} options={regionOptions} />\n<Slider value={value} onChange={setValue} />`}
           >
             <div className="grid gap-5">
               <Select
                 value={selectValue}
                 onChange={setSelectValue}
-                options={[
-                  { value: 'aws', label: 'AWS us-east-1' },
-                  { value: 'gcp', label: 'GCP europe-west1' },
-                  { value: 'azure', label: 'Azure eastus2' },
-                ]}
+                options={regionOptions}
+              />
+              <Select
+                multiple
+                value={multiSelectValue}
+                onChange={setMultiSelectValue}
+                options={regionOptions}
+                placeholder="Select regions..."
               />
               <div className="grid gap-2">
                 <div className="flex justify-between text-sm text-steel">

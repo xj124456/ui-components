@@ -176,23 +176,74 @@ export function Switch({ checked = false, disabled = false, onChange, ariaLabel 
   );
 }
 
-export interface SelectProps {
+interface SelectBaseProps {
   options?: Option[];
-  value?: string;
-  onChange?: (value: string) => void;
   placeholder?: string;
   ariaLabel?: string;
   disabled?: boolean;
   size?: 'md' | 'lg';
+  searchable?: boolean | 'auto';
+  searchThreshold?: number;
+  searchPlaceholder?: string;
+  emptyText?: string;
   className?: string;
 }
 
+export interface SelectSingleProps extends SelectBaseProps {
+  multiple?: false;
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+export interface SelectMultiProps extends SelectBaseProps {
+  multiple: true;
+  value?: string[];
+  onChange?: (value: string[]) => void;
+}
+
+export type SelectProps = SelectSingleProps | SelectMultiProps;
+
 /** Custom dropdown with popover and listbox. */
-export function Select({ options = [], value, onChange, placeholder = 'Select...', ariaLabel, disabled = false, size = 'md', className }: SelectProps) {
+export function Select(props: SelectSingleProps): React.JSX.Element;
+export function Select(props: SelectMultiProps): React.JSX.Element;
+export function Select({
+  options = [],
+  value,
+  onChange,
+  multiple = false,
+  placeholder = 'Select...',
+  ariaLabel,
+  disabled = false,
+  size = 'md',
+  searchable = 'auto',
+  searchThreshold = 8,
+  searchPlaceholder = 'Search options...',
+  emptyText = 'No options found',
+  className,
+}: SelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
   const ref = React.useRef<HTMLDivElement>(null);
-  const norm = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
-  const current = norm.find((o) => o.value === value);
+  const searchRef = React.useRef<HTMLInputElement>(null);
+  const norm = React.useMemo(() => options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)), [options]);
+  const selectedValues = React.useMemo(() => {
+    if (multiple) return Array.isArray(value) ? value : [];
+    return typeof value === 'string' ? [value] : [];
+  }, [multiple, value]);
+  const selectedSet = React.useMemo(() => new Set(selectedValues), [selectedValues]);
+  const current = norm.find((o) => o.value === selectedValues[0]);
+  const selectedOptions = React.useMemo(() => norm.filter((o) => selectedSet.has(o.value)), [norm, selectedSet]);
+  const displayLabel = multiple
+    ? selectedOptions.length > 0
+      ? selectedOptions.map((o) => o.label).join(', ')
+      : placeholder
+    : current?.label ?? placeholder;
+  const shouldSearch = searchable === true || (searchable === 'auto' && norm.length > searchThreshold);
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!shouldSearch || !q) return norm;
+    return norm.filter((o) => `${o.label} ${o.value}`.toLowerCase().includes(q));
+  }, [norm, query, shouldSearch]);
   const h = size === 'lg' ? 'h-14' : 'h-11';
 
   React.useEffect(() => {
@@ -201,40 +252,74 @@ export function Select({ options = [], value, onChange, placeholder = 'Select...
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
-  const pick = (v: string) => { onChange && onChange(v); setOpen(false); };
+  React.useEffect(() => {
+    if (!open) {
+      setQuery('');
+      return;
+    }
+    if (shouldSearch) window.requestAnimationFrame(() => searchRef.current?.focus());
+  }, [open, shouldSearch]);
+
+  const pick = (v: string) => {
+    if (multiple) {
+      const next = selectedSet.has(v) ? selectedValues.filter((item) => item !== v) : [...selectedValues, v];
+      (onChange as ((value: string[]) => void) | undefined)?.(next);
+      return;
+    }
+    (onChange as ((value: string) => void) | undefined)?.(v);
+    setOpen(false);
+    setQuery('');
+  };
 
   return (
     <div ref={ref} className={cn('relative w-full', className)}>
       <button type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
-        aria-label={ariaLabel ?? current?.label ?? placeholder}
+        aria-label={ariaLabel ?? displayLabel}
         onClick={() => !disabled && setOpen((o) => !o)}
         className={cn('w-full box-border flex items-center justify-between gap-2.5 pl-4 pr-3.5 text-left font-sans text-base bg-canvas rounded-input outline-none transition-[border] duration-base ease-standard',
-          h, current ? 'text-ink' : 'text-steel',
+          h, selectedOptions.length > 0 || current ? 'text-ink' : 'text-steel',
           open ? 'border-2 border-brand-green-dark' : 'border border-hairline-strong',
           disabled ? 'opacity-55 cursor-not-allowed' : 'cursor-pointer')}>
-        <span className="overflow-hidden text-ellipsis whitespace-nowrap">{current ? current.label : placeholder}</span>
+        <span className="overflow-hidden text-ellipsis whitespace-nowrap">{displayLabel}</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--steel)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           className={cn('flex-none transition-transform duration-base ease-standard', open && 'rotate-180')}>
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
       {open && (
-        <div role="listbox" className="absolute top-[calc(100%+6px)] left-0 right-0 z-[60] bg-canvas rounded-input border border-hairline shadow-e4 p-1.5 max-h-[280px] overflow-y-auto font-sans">
-          {norm.map((o) => {
-            const active = o.value === value;
-            return (
-              <button key={o.value} type="button" role="option" aria-selected={active} onClick={() => pick(o.value)}
-                className={cn('w-full flex items-center justify-between gap-2.5 py-[9px] px-3 rounded-chip text-ink text-sm text-left cursor-pointer',
-                  active ? 'bg-surface-feature' : 'bg-transparent hover:bg-surface')}>
-                <span className="overflow-hidden text-ellipsis whitespace-nowrap">{o.label}</span>
-                {active && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green-dark)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="flex-none">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
+        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-[60] bg-canvas rounded-input border border-hairline shadow-e4 p-1.5 font-sans">
+          {shouldSearch && (
+            <div className="p-1">
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                className="box-border h-10 w-full rounded-chip border border-hairline-strong bg-canvas px-3 font-sans text-sm text-ink outline-none transition-[border] duration-base ease-standard placeholder:text-stone focus:border-2 focus:border-brand-green-dark focus:px-[11px]"
+              />
+            </div>
+          )}
+          <div role="listbox" aria-multiselectable={multiple || undefined} className="max-h-[280px] overflow-y-auto">
+            {filtered.map((o) => {
+              const active = selectedSet.has(o.value);
+              return (
+                <button key={o.value} type="button" role="option" aria-selected={active} onClick={() => pick(o.value)}
+                  className={cn('w-full flex items-center justify-between gap-2.5 py-[9px] px-3 rounded-chip text-ink text-sm text-left cursor-pointer',
+                    active ? 'bg-surface-feature' : 'bg-transparent hover:bg-surface')}>
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">{o.label}</span>
+                  {active && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green-dark)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="flex-none">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+            {filtered.length === 0 && (
+              <div role="status" className="px-3 py-4 text-sm text-steel">{emptyText}</div>
+            )}
+          </div>
         </div>
       )}
     </div>
