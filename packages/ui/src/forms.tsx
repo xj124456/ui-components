@@ -203,6 +203,30 @@ export interface SelectMultiProps extends SelectBaseProps {
 
 export type SelectProps = SelectSingleProps | SelectMultiProps;
 
+function estimateSelectChipWidth(label: string) {
+  return Math.max(36, label.length * 8 + 18);
+}
+
+function getVisibleSelectedCount(labels: string[], width: number) {
+  if (labels.length <= 1) return labels.length;
+  if (width <= 0) return 1;
+
+  const available = Math.max(0, width - 72);
+  let used = 0;
+
+  for (let i = 0; i < labels.length; i += 1) {
+    const hiddenCount = labels.length - i - 1;
+    const countWidth = hiddenCount > 0 ? 34 + String(hiddenCount).length * 8 : 0;
+    const gapWidth = i > 0 ? 8 : 0;
+    const next = gapWidth + estimateSelectChipWidth(labels[i]);
+
+    if (used + next + countWidth > available) return Math.max(i, 1);
+    used += next;
+  }
+
+  return labels.length;
+}
+
 /** Custom dropdown with popover and listbox. */
 export function Select(props: SelectSingleProps): React.JSX.Element;
 export function Select(props: SelectMultiProps): React.JSX.Element;
@@ -223,7 +247,9 @@ export function Select({
 }: SelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
+  const [triggerWidth, setTriggerWidth] = React.useState(0);
   const ref = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
   const norm = React.useMemo(() => options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)), [options]);
   const selectedValues = React.useMemo(() => {
@@ -239,8 +265,10 @@ export function Select({
       : placeholder
     : current?.label ?? placeholder;
   const hasValue = selectedOptions.length > 0 || Boolean(current);
-  const visibleLabel = multiple && selectedOptions.length > 0 ? selectedOptions[0].label : displayLabel;
-  const extraCount = multiple ? Math.max(selectedOptions.length - 1, 0) : 0;
+  const selectedLabels = React.useMemo(() => selectedOptions.map((o) => o.label), [selectedOptions]);
+  const visibleCount = multiple ? getVisibleSelectedCount(selectedLabels, triggerWidth) : 1;
+  const visibleLabels = multiple && selectedOptions.length > 0 ? selectedLabels.slice(0, visibleCount) : [displayLabel];
+  const extraCount = multiple ? Math.max(selectedOptions.length - visibleLabels.length, 0) : 0;
   const shouldSearch = searchable === true || (searchable === 'auto' && norm.length > searchThreshold);
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -263,6 +291,19 @@ export function Select({
     if (shouldSearch) window.requestAnimationFrame(() => searchRef.current?.focus());
   }, [open, shouldSearch]);
 
+  React.useEffect(() => {
+    const updateWidth = () => setTriggerWidth(triggerRef.current?.clientWidth ?? 0);
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateWidth) : undefined;
+    if (triggerRef.current) observer?.observe(triggerRef.current);
+
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      observer?.disconnect();
+    };
+  }, []);
+
   const pick = (v: string) => {
     if (multiple) {
       const next = selectedSet.has(v) ? selectedValues.filter((item) => item !== v) : [...selectedValues, v];
@@ -274,17 +315,31 @@ export function Select({
     setQuery('');
   };
 
+  const onTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled || e.altKey || e.ctrlKey || e.metaKey || e.key.length !== 1) return;
+
+    const key = e.key.toLowerCase();
+    const matched = norm.find((o) => o.label.toLowerCase().startsWith(key) || o.value.toLowerCase().startsWith(key));
+    if (!matched) return;
+
+    e.preventDefault();
+    pick(matched.value);
+  };
+
   return (
     <div ref={ref} className={cn('relative w-full', className)}>
-      <button type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
+      <button ref={triggerRef} type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
         aria-label={ariaLabel ?? displayLabel}
         onClick={() => !disabled && setOpen((o) => !o)}
+        onKeyDown={onTriggerKeyDown}
         className={cn('w-full box-border flex items-center justify-between gap-2.5 pl-4 pr-3.5 text-left font-sans text-base bg-canvas rounded-input outline-none transition-[border] duration-base ease-standard',
           h, hasValue ? 'text-ink' : 'text-steel',
           open ? 'border-2 border-brand-green-dark' : 'border border-hairline-strong',
           disabled ? 'opacity-55 cursor-not-allowed' : 'cursor-pointer')}>
         <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-          <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{visibleLabel}</span>
+          {visibleLabels.map((label) => (
+            <span key={label} className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
+          ))}
           {extraCount > 0 && (
             <span className="flex-none rounded-chip bg-surface px-2 py-0.5 text-xs font-medium text-steel">
               +{extraCount}
