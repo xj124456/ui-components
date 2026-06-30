@@ -33,6 +33,12 @@ function keyDown(element: Element, key: string) {
   });
 }
 
+function click(element: Element) {
+  act(() => {
+    element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+}
+
 describe('Select', () => {
   test('selects the first matching option from the keyboard', () => {
     const onChange = vi.fn();
@@ -45,12 +51,33 @@ describe('Select', () => {
       />,
     );
 
-    const trigger = document.querySelector('button[aria-haspopup="listbox"]');
+    const trigger = document.querySelector('[aria-haspopup="listbox"]');
     expect(trigger).not.toBeNull();
 
     keyDown(trigger!, 'g');
 
     expect(onChange).toHaveBeenCalledWith('Gamma');
+  });
+
+  test('selects the highlighted option with arrow keys and enter', () => {
+    const onChange = vi.fn();
+    render(
+      <Select
+        ariaLabel="Project"
+        value=""
+        onChange={onChange}
+        options={['Alpha', 'Beta', 'Gamma']}
+      />,
+    );
+
+    const trigger = document.querySelector('[aria-haspopup="listbox"]');
+    expect(trigger).not.toBeNull();
+
+    keyDown(trigger!, 'ArrowDown');
+    keyDown(trigger!, 'ArrowDown');
+    keyDown(trigger!, 'Enter');
+
+    expect(onChange).toHaveBeenCalledWith('Beta');
   });
 
   test('shows all selected labels when a multi select has enough width', async () => {
@@ -67,7 +94,7 @@ describe('Select', () => {
       />,
     );
 
-    const trigger = document.querySelector('button[aria-haspopup="listbox"]') as HTMLButtonElement;
+    const trigger = document.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     Object.defineProperty(trigger, 'clientWidth', { configurable: true, value: 420 });
 
     act(() => window.dispatchEvent(new Event('resize')));
@@ -77,6 +104,36 @@ describe('Select', () => {
     expect(trigger.textContent).toContain('Beta');
     expect(trigger.textContent).toContain('Gamma');
     expect(trigger.textContent).not.toContain('+');
+  });
+
+  test('removes one visible selected value from a multi select', async () => {
+    const onChange = vi.fn();
+    render(
+      <Select
+        ariaLabel="Teams"
+        multiple
+        value={['alpha', 'beta', 'gamma']}
+        onChange={onChange}
+        options={[
+          { value: 'alpha', label: 'Alpha' },
+          { value: 'beta', label: 'Beta' },
+          { value: 'gamma', label: 'Gamma' },
+        ]}
+      />,
+    );
+
+    const trigger = document.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    Object.defineProperty(trigger, 'clientWidth', { configurable: true, value: 420 });
+
+    act(() => window.dispatchEvent(new Event('resize')));
+    await act(async () => {});
+
+    const removeBeta = document.querySelector('button[aria-label="Remove Beta"]');
+    expect(removeBeta).not.toBeNull();
+
+    click(removeBeta!);
+
+    expect(onChange).toHaveBeenCalledWith(['alpha', 'gamma']);
   });
 
   test('shows a count only for multi select labels that do not fit', async () => {
@@ -93,7 +150,7 @@ describe('Select', () => {
       />,
     );
 
-    const trigger = document.querySelector('button[aria-haspopup="listbox"]') as HTMLButtonElement;
+    const trigger = document.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     Object.defineProperty(trigger, 'clientWidth', { configurable: true, value: 140 });
 
     act(() => window.dispatchEvent(new Event('resize')));

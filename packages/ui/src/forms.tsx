@@ -248,8 +248,9 @@ export function Select({
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [triggerWidth, setTriggerWidth] = React.useState(0);
+  const [activeIndex, setActiveIndex] = React.useState(-1);
   const ref = React.useRef<HTMLDivElement>(null);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const triggerRef = React.useRef<HTMLDivElement>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
   const norm = React.useMemo(() => options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)), [options]);
   const selectedValues = React.useMemo(() => {
@@ -267,8 +268,8 @@ export function Select({
   const hasValue = selectedOptions.length > 0 || Boolean(current);
   const selectedLabels = React.useMemo(() => selectedOptions.map((o) => o.label), [selectedOptions]);
   const visibleCount = multiple ? getVisibleSelectedCount(selectedLabels, triggerWidth) : 1;
-  const visibleLabels = multiple && selectedOptions.length > 0 ? selectedLabels.slice(0, visibleCount) : [displayLabel];
-  const extraCount = multiple ? Math.max(selectedOptions.length - visibleLabels.length, 0) : 0;
+  const visibleSelectedOptions = multiple && selectedOptions.length > 0 ? selectedOptions.slice(0, visibleCount) : [];
+  const extraCount = multiple ? Math.max(selectedOptions.length - visibleSelectedOptions.length, 0) : 0;
   const shouldSearch = searchable === true || (searchable === 'auto' && norm.length > searchThreshold);
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -286,10 +287,12 @@ export function Select({
   React.useEffect(() => {
     if (!open) {
       setQuery('');
+      setActiveIndex(-1);
       return;
     }
+    setActiveIndex(filtered.length > 0 ? Math.max(filtered.findIndex((o) => selectedSet.has(o.value)), 0) : -1);
     if (shouldSearch) window.requestAnimationFrame(() => searchRef.current?.focus());
-  }, [open, shouldSearch]);
+  }, [filtered, open, selectedSet, shouldSearch]);
 
   React.useEffect(() => {
     const updateWidth = () => setTriggerWidth(triggerRef.current?.clientWidth ?? 0);
@@ -315,8 +318,50 @@ export function Select({
     setQuery('');
   };
 
-  const onTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (disabled || e.altKey || e.ctrlKey || e.metaKey || e.key.length !== 1) return;
+  const removeSelected = (v: string) => {
+    if (!multiple) return;
+    const next = selectedValues.filter((item) => item !== v);
+    (onChange as ((value: string[]) => void) | undefined)?.(next);
+  };
+
+  const moveActive = (direction: 1 | -1) => {
+    if (filtered.length === 0) return;
+    setActiveIndex((index) => {
+      if (index < 0) return direction === 1 ? 0 : filtered.length - 1;
+      return (index + direction + filtered.length) % filtered.length;
+    });
+  };
+
+  const onTriggerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled || e.altKey || e.ctrlKey || e.metaKey) return;
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setActiveIndex(e.key === 'ArrowDown' ? 0 : Math.max(filtered.length - 1, 0));
+        return;
+      }
+      moveActive(e.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (open && activeIndex >= 0 && filtered[activeIndex]) {
+        pick(filtered[activeIndex].value);
+        return;
+      }
+      setOpen((o) => !o);
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      setOpen(false);
+      return;
+    }
+
+    if (e.key.length !== 1) return;
 
     const key = e.key.toLowerCase();
     const matched = norm.find((o) => o.label.toLowerCase().startsWith(key) || o.value.toLowerCase().startsWith(key));
@@ -328,7 +373,7 @@ export function Select({
 
   return (
     <div ref={ref} className={cn('relative w-full', className)}>
-      <button ref={triggerRef} type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
+      <div ref={triggerRef} role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled || undefined} aria-haspopup="listbox" aria-expanded={open}
         aria-label={ariaLabel ?? displayLabel}
         onClick={() => !disabled && setOpen((o) => !o)}
         onKeyDown={onTriggerKeyDown}
@@ -337,9 +382,25 @@ export function Select({
           open ? 'border-2 border-brand-green-dark' : 'border border-hairline-strong',
           disabled ? 'opacity-55 cursor-not-allowed' : 'cursor-pointer')}>
         <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-          {visibleLabels.map((label) => (
-            <span key={label} className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
-          ))}
+          {multiple && visibleSelectedOptions.length > 0 ? visibleSelectedOptions.map((selected) => (
+            <span key={selected.value} className="inline-flex min-w-0 items-center gap-1 rounded-chip bg-surface px-2 py-0.5">
+              <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{selected.label}</span>
+              <button type="button" aria-label={`Remove ${selected.label}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeSelected(selected.value);
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="flex h-4 w-4 flex-none items-center justify-center rounded-full text-steel hover:bg-hairline hover:text-ink">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </span>
+          )) : (
+            <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{displayLabel}</span>
+          )}
           {extraCount > 0 && (
             <span className="flex-none rounded-chip bg-surface px-2 py-0.5 text-xs font-medium text-steel">
               +{extraCount}
@@ -350,7 +411,7 @@ export function Select({
           className={cn('flex-none transition-transform duration-base ease-standard', open && 'rotate-180')}>
           <polyline points="6 9 12 15 18 9" />
         </svg>
-      </button>
+      </div>
       {open && (
         <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-[60] bg-canvas rounded-input border border-hairline shadow-e4 p-1.5 font-sans">
           {shouldSearch && (
@@ -366,12 +427,13 @@ export function Select({
             </div>
           )}
           <div role="listbox" aria-multiselectable={multiple || undefined} className="max-h-[280px] overflow-y-auto">
-            {filtered.map((o) => {
+            {filtered.map((o, index) => {
               const active = selectedSet.has(o.value);
+              const highlighted = index === activeIndex;
               return (
-                <button key={o.value} type="button" role="option" aria-selected={active} onClick={() => pick(o.value)}
+                <button key={o.value} id={`select-option-${o.value}`} type="button" role="option" aria-selected={active} onClick={() => pick(o.value)}
                   className={cn('w-full flex items-center justify-between gap-2.5 py-[9px] px-3 rounded-chip text-ink text-sm text-left cursor-pointer',
-                    active ? 'bg-surface-feature' : 'bg-transparent hover:bg-surface')}>
+                    active ? 'bg-surface-feature' : highlighted ? 'bg-surface' : 'bg-transparent hover:bg-surface')}>
                   <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{o.label}</span>
                   {active && (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green-dark)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="flex-none">
